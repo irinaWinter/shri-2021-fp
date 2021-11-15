@@ -1,3 +1,9 @@
+import {
+    compose,
+    curry,
+    tap,
+    prop
+} from 'ramda';
 /**
  * @file Домашка по FP ч. 2
  * 
@@ -25,13 +31,13 @@ const wait = time => new Promise(resolve => {
     setTimeout(resolve, time);
 })
 
-const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
+const processSequence1 = ({ value, writeLog, handleSuccess, handleError }) => {
     /**
      * Я – пример, удали меня
      */
     writeLog(value);
 
-    api.get('https://api.tech/numbers/base', {from: 2, to: 10, number: '01011010101'}).then(({result}) => {
+    api.get('https://api.tech/numbers/base', { from: 2, to: 10, number: '01011010101' }).then(({ result }) => {
         writeLog(result);
     });
 
@@ -48,4 +54,15 @@ const processSequence = ({value, writeLog, handleSuccess, handleError}) => {
     });
 }
 
+const log = (str) => {
+    console.log(str)
+}
+
+const getValue = prop('value');
+const getWriteLog = prop('writeLog');
+
+const processSequence = compose(
+    log,
+    getWriteLog,
+)
 export default processSequence;
