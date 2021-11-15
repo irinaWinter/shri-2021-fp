@@ -2,7 +2,14 @@ import {
     compose,
     curry,
     tap,
-    prop
+    prop,
+    tryCatch,
+    apply,
+    lt,
+    allPass,
+    gt,
+    length,
+    ifElse
 } from 'ramda';
 /**
  * @file Домашка по FP ч. 2
@@ -37,32 +44,79 @@ const processSequence1 = ({ value, writeLog, handleSuccess, handleError }) => {
      */
     writeLog(value);
 
-    api.get('https://api.tech/numbers/base', { from: 2, to: 10, number: '01011010101' }).then(({ result }) => {
-        writeLog(result);
-    });
+    // api.get('https://api.tech/numbers/base', { from: 2, to: 10, number: '01011010101' }).then(({ result }) => {
+    //     writeLog(result);
+    // });
 
-    wait(2500).then(() => {
-        writeLog('SecondLog')
+    // wait(2500).then(() => {
+    //     writeLog('SecondLog')
 
-        return wait(1500);
-    }).then(() => {
-        writeLog('ThirdLog');
+    //     return wait(1500);
+    // }).then(() => {
+    //     writeLog('ThirdLog');
 
-        return wait(400);
-    }).then(() => {
-        handleSuccess('Done');
-    });
+    //     return wait(400);
+    // }).then(() => {
+    //     handleSuccess('Done');
+    // });
 }
 
 const log = (str) => {
     console.log(str)
 }
 
-const getValue = prop('value');
-const getWriteLog = prop('writeLog');
+// const logErrorMessage = () => console.log('error');
 
-const processSequence = compose(
-    log,
-    getWriteLog,
-)
+// const createSafeFunction = (fn) => tryCatch(fn, logErrorMessage);
+
+// const readValueSafe = (fn) => createSafeFunction(fn);
+
+
+// const getValueLength = length;
+// const getWriteLog = prop('writeLog');
+
+const processSequence = ({ value, writeLog, handleSuccess, handleError }) => {
+    // const getValue = prop('value');
+    const getValue = () => value;
+    const toNumber = (str) => +str;
+    const isLengthLtTen = compose(gt(10), length)
+    const isLengthGtTwo = compose(lt(2), length);
+    const isGtZero = lt(0)
+    const roundNumber = (number) => Math.round(number);
+
+    const g = () => {
+        api.get('https://api.tech/numbers/base', { from: 2, to: 10, number: '01011010101' }).then(({ result }) => {
+            writeLog(result);
+        });
+    }
+
+    const isValidValue = allPass([
+        isLengthGtTwo,
+        isLengthLtTen,
+        isGtZero,
+    ]);
+
+    const getErrorMessage = () => 'ValidationError';
+    const getSuccessMessage = () => 'Done';
+
+    const validateValue = ifElse(
+        isValidValue,
+        compose(handleSuccess, getSuccessMessage),
+        compose(handleError, getErrorMessage),
+    )
+
+
+    const app = compose(
+        writeLog,
+        roundNumber,
+        toNumber,
+        getValue,
+        validateValue,
+        getValue,
+        writeLog,
+
+    );
+    app(value)
+}
+
 export default processSequence;
