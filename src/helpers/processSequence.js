@@ -9,7 +9,11 @@ import {
     allPass,
     gt,
     length,
-    ifElse
+    ifElse,
+    andThen,
+    otherwise,
+    pick,
+    composeP
 } from 'ramda';
 /**
  * @file Домашка по FP ч. 2
@@ -44,9 +48,9 @@ const processSequence1 = ({ value, writeLog, handleSuccess, handleError }) => {
      */
     writeLog(value);
 
-    // api.get('https://api.tech/numbers/base', { from: 2, to: 10, number: '01011010101' }).then(({ result }) => {
-    //     writeLog(result);
-    // });
+    api.get(`https://api.tech/numbers/base`, { from: 10, to: 2, number: value }).then(({ result }) => {
+        writeLog(result);
+    });
 
     // wait(2500).then(() => {
     //     writeLog('SecondLog')
@@ -72,11 +76,7 @@ const log = (str) => {
 // const readValueSafe = (fn) => createSafeFunction(fn);
 
 
-// const getValueLength = length;
-// const getWriteLog = prop('writeLog');
-
 const processSequence = ({ value, writeLog, handleSuccess, handleError }) => {
-    // const getValue = prop('value');
     const getValue = () => value;
     const toNumber = (str) => +str;
     const isLengthLtTen = compose(gt(10), length)
@@ -84,11 +84,15 @@ const processSequence = ({ value, writeLog, handleSuccess, handleError }) => {
     const isGtZero = lt(0)
     const roundNumber = (number) => Math.round(number);
 
-    const g = () => {
-        api.get('https://api.tech/numbers/base', { from: 2, to: 10, number: '01011010101' }).then(({ result }) => {
-            writeLog(result);
-        });
-    }
+    const convertToBinary = (number) => api.get(`https://api.tech/numbers/base`, { from: 10, to: 2, number: number })
+        .then(({ result }) => writeLog(result));
+
+
+    // const g = () => {
+    //     .then(({ result }) => {
+    //         writeLog(result);
+    //     });
+    // }
 
     const isValidValue = allPass([
         isLengthGtTwo,
@@ -107,6 +111,11 @@ const processSequence = ({ value, writeLog, handleSuccess, handleError }) => {
 
 
     const app = compose(
+
+        convertToBinary,
+        roundNumber,
+        toNumber,
+        getValue,
         writeLog,
         roundNumber,
         toNumber,
